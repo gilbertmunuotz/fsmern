@@ -39,12 +39,12 @@ const Login = () => {
 
             const response = await fetch(url, requestOptions);
             const data = await response.json();
-            // console.log(data)
 
             if (response.ok) {
-                dispatch(login(data)); // Dispatch Login Action From Redux store
-                navigate("/"); // Navigate to home After Registration
-                toast.success('Login Succesfully'); // Toast a Successful Message Upon Successful Login
+                const token = data.Token; // Extract the token
+                dispatch(login({ user: data.user, token })); // Dispatch login action with user and token
+                navigate("/"); // Navigate to home after login
+                toast.success('Login Succesfully'); // Toast success message
             } else {
                 toast.error(data.error); // Display backend error message to the user
             }

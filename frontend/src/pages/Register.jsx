@@ -40,12 +40,12 @@ const Register = () => {
 
             const response = await fetch(url, requestOptions);
             const data = await response.json();
-            // console.log(data);
 
             if (response.ok) {
-                dispatch(registers(data)); // Dispatch Register Action From Redux store
-                navigate("/login"); // Navigate to login After Registration
-                toast.success('Registered Succesfully'); // Toast a Successful Message Upon Successful Registration
+                const token = data.Token; // Extract the token
+                dispatch(registers({ token })); // Dispatch registers action with token only
+                navigate("/login"); // Navigate to login after registration
+                toast.success('Registered Succesfully'); // Toast success message
 
                 // Delayed Toast for Login Success Message (using Promise.resolve)
                 Promise.resolve()
