@@ -1,6 +1,7 @@
+import { toast } from 'react-toastify';
+import { useDispatch, } from 'react-redux'
 import { logout } from '../auth/AuthSlice';
 import { Link, useNavigate } from 'react-router-dom';
-import { useDispatch, } from 'react-redux'
 import { AiOutlineUser, AiOutlineShoppingCart } from 'react-icons/ai';
 
 const Navbar = () => {
@@ -11,6 +12,7 @@ const Navbar = () => {
   const handleLogout = () => {
     dispatch(logout())
     navigate('/login')
+    toast.success("User Logged Out");
   }
 
   return (
@@ -23,7 +25,7 @@ const Navbar = () => {
           <li className="hover:text-gray-500"><a href="#contacts">Contacts</a></li>
           <li className="hover:text-gray-500"><a href="#foods">Foods</a></li>
           <li className="hover:text-gray-500"><a href="#faq">FAQ</a></li>
-          <li className="hover:text-gray-500"><Link to="/create">Create</Link></li>
+          <li className="hover:text-gray-500"><Link to="/profile">Profile</Link></li>
         </ul>
 
         <div className="flex items-center space-x-4"> {/* Tailwind classes for right side */}
