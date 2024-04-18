@@ -21,19 +21,18 @@ connectToMongo()
 // Initiate Express
 var app = express();
 
+
 // Add your Express middleware,and other logic here
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+app.use(cors({
+  origin: 'http://localhost:5173', // Allow requests from your frontend origin
+  methods: ['POST', 'GET', 'OPTIONS'], // Specify allowed methods
+  allowedHeaders: ['Content-Type', 'Authorization'] // Allow specific headers
+}));
 
-app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173'); // Allow requests from your frontend origin
-  res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS'); // Specify allowed methods
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization'); // Allow specific headers
-  next();
-});
 
 app.use(userRoutes);
-
 
 
 //Listen Response From Server
