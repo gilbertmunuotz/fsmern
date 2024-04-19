@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var userController = require('../controllers/UsersController');
+const { protect } = require('../middlewares/authmiddleware');
 
 
 /* GET home page. */
@@ -11,5 +12,17 @@ router.post('/api/register', userController.registerController);
 
 /* Register User */
 router.post('/api/login', userController.loginController);
+
+/* Logout User */
+router.get('/api/logout', userController.logoutController);
+
+/* Get User Profile Data */
+router.get('/api/myprofile', protect, userController.getUserProfileData);
+
+/* Get User Profile Data */
+router.get('/api/loggedin', userController.checkUserStatus);
+
+/* Get Update User Profile */
+router.put('/api/update', protect, userController.updateMyProfile);
 
 module.exports = router;

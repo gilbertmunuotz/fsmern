@@ -1,5 +1,6 @@
 var Joi = require('joi');
 var bcrypt = require("bcrypt")
+var jwt = require('jsonwebtoken');
 var token = require('../jwtToken.js');
 var userModel = require('../models/UserModel');
 
@@ -9,10 +10,12 @@ async function getSignal(req, res, next) {
     try {
         res.send('Welcome Back')
     } catch (error) {
+        next(error)
         console.error("Error Getting Data", error);
         res.status(500).send({ status: 'error', message: 'Internal Server Error' });
     }
 }
+
 
 //(DESC) Registering Users
 async function registerController(req, res, next) {
@@ -57,10 +60,12 @@ async function registerController(req, res, next) {
 
         //Catch Existing Errors
     } catch (error) {
+        next(error)
         console.error('Error during registration', error);
         res.status(500).send({ status: 'error', message: 'Internal Server Error' });
     }
 }
+
 
 //(DESC) Logining Users
 async function loginController(req, res, next) {
@@ -101,11 +106,108 @@ async function loginController(req, res, next) {
 
 
     } catch (error) {
+        next(error)
         console.error('Error during login', error);
         res.status(500).send({ status: 'error', message: 'Internal Server Error' });
     }
 }
 
 
+//(DESC) Logout Users
+async function logoutController(req, res, next) {
+    try {
+        res.cookie('jwttoken', '', {
+            path: '/',
+            httpOnly: true,
+            sameSite: 'none',
+            expires: new Date(0),
+            sameSite: 'strict', // Prevent CSRF attacks
+        });
+        res.status(200).json({ message: 'Logged out successfully' });
+    } catch (error) {
+        next(error)
+        console.error('Error during logout', error);
+        res.status(500).send({ status: 'error', message: "Internal Server Error" });
+    }
+}
 
-module.exports = { getSignal, registerController, loginController }
+
+//(DESC) Get User Data
+async function getUserProfileData(req, res, next) {
+    try {
+
+        const user = req.user;
+        if (user) {
+
+            const { _id, username, email } = user;
+
+            res.status(200).json({
+                _id,
+                username,
+                email,
+            });
+        } else {
+            res.status(401).send({ status: 'error', message: "Unauthorized Access" });
+        }
+    } catch (error) {
+        next(error)
+        console.error("Error Getting User Data", error);
+        res.status(500).send({ status: 'error', message: "Internal server Error" });
+    }
+}
+
+
+//(DESC) Check user Status
+async function checkUserStatus(req, res) {
+
+    // Access cookie named 'jwttoken'
+    const tokens = req.cookies.jwttoken;
+
+    // Check if Token cookie Exists
+    if (!tokens) {
+        return res.json(false);
+    }
+
+    // Verify the Token if exists
+    const verified = jwt.verify(tokens, process.env.JWT_SECRET);
+
+    //Render appropiate Status accordingly
+    if (verified) {
+        return res.json(true);
+    } else {
+        return res.json(false);
+    }
+
+}
+
+
+//(DESC) Update user Profile
+async function updateMyProfile(req, res, next) {
+
+    //Find user by Id
+    const user = await userModel.findById(req.user._id);
+
+    // Hash the password before updating
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(req.body.password, salt);
+
+    // Create an object to hold the fields to be updated 
+    const updateFields = { username: req.body.username, email: req.body.email, password: hashedPassword, };
+
+    //Update user By Id
+    const fieldsToUpdate = await userModel.findByIdAndUpdate(user, updateFields);
+
+    try {
+        if (!fieldsToUpdate) {
+            return res.status(404).json({ message: "User Not Found" });
+        } else {
+            return res.status(200).send({ message: "Updated Succesfully" });
+        }
+    } catch (error) {
+        next(error)
+        console.error("Error Updating User", error);
+        res.status(500).send({ status: "error", message: "Internal server Error" });
+    }
+}
+
+module.exports = { getSignal, registerController, loginController, logoutController, getUserProfileData, checkUserStatus, updateMyProfile }
