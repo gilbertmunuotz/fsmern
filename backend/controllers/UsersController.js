@@ -38,7 +38,7 @@ async function registerController(req, res, next) {
         // Check for existing user using usermodel (Mongoose model)
         const isExisting = await userModel.findOne({ email })
         if (isExisting) {
-            return res.status(400).send({ error: 'An account with such email Already exists.Please Try a new one!' });
+            return res.status(400).json({ status: "error", message: 'An account with such email Already exists.Please Try a new one!' });
         }
 
         // Hash the password before saving it
@@ -62,7 +62,7 @@ async function registerController(req, res, next) {
     } catch (error) {
         next(error)
         console.error('Error during registration', error);
-        res.status(500).send({ status: 'error', message: 'Internal Server Error' });
+        res.status(500).json({ status: 'error', message: 'Internal Server Error' });
     }
 }
 
@@ -87,14 +87,14 @@ async function loginController(req, res, next) {
         const user = await userModel.findOne({ username });
 
         if (!user) {
-            return res.status(400).send({ error: 'User Doesnot Exist' });
+            return res.status(400).json({ status: error, message: 'User Doesnot Exist' });
         }
 
         // Compare hashed passwords using bcrypt
         const isPasswordMatch = await bcrypt.compare(password, user.password);
 
         if (!isPasswordMatch) {
-            return res.status(400).send({ error: 'Wrong Credentials' });
+            return res.status(400).json({ status: error, message: 'Wrong Credentials' });
         }
 
         // Generate JWT token after successful login & Bind it To The User
@@ -108,7 +108,7 @@ async function loginController(req, res, next) {
     } catch (error) {
         next(error)
         console.error('Error during login', error);
-        res.status(500).send({ status: 'error', message: 'Internal Server Error' });
+        res.status(500).json({ status: 'error', message: 'Internal Server Error' });
     }
 }
 
