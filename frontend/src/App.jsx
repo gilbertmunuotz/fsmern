@@ -5,12 +5,15 @@ import Register from "./pages/Register";
 import NotFound from "./components/Notfound";
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify';
+import PrivateRoutes from './components/PrivateRoutes';
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 const router = createBrowserRouter([
   { path: "/", element: <Index />, errorElement: <NotFound /> },
   { path: "/login", element: <Login />, errorElement: <NotFound /> },
-  { path: "/profile", element: <Profile />, errorElement: <NotFound /> },
+  {
+    path: "/myprofile", element: (<PrivateRoutes><Profile /></PrivateRoutes>), errorElement: <NotFound />
+  },
   { path: "/register", element: <Register />, errorElement: <NotFound /> },
 ])
 
