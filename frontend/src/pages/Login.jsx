@@ -1,57 +1,48 @@
 import { useState } from 'react'
 import { toast } from 'react-toastify';
-import { useDispatch } from 'react-redux'
+import { useDispatch } from 'react-redux';
 import { useForm } from 'react-hook-form';
-import { login } from '../auth/AuthSlice'
-import { loginSchema } from '../userschema/LoginSchema';
+import { credentials } from '../auth/AuthSlice';
+import { useLoginMutation } from "../auth/APIslice";
 import { Link, useNavigate } from 'react-router-dom'
 import { yupResolver } from '@hookform/resolvers/yup';
+import { loginSchema } from '../userschema/LoginSchema';
 
 const Login = () => {
-
     const {
         register,
         handleSubmit,
         formState: { errors },
     } = useForm({ resolver: yupResolver(loginSchema) });
 
-
     const [username, setUsername] = useState("")
     const [password, setPassword] = useState("")
-    const dispatch = useDispatch()
     const navigate = useNavigate()
+    const dispatch = useDispatch();
+
+    const [loginUser, { isLoading }] = useLoginMutation();
 
     const handleLogin = async () => {
-
-        const url = 'http://localhost:4000/api/login';
-
-        const userData = { username, password };
-
-        const requestOptions = {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(userData), // Stringify data into JSON
-        };
-
         try {
             // Perform client-side validation using yup
             await loginSchema.validate({ username, password });
 
-            const response = await fetch(url, requestOptions);
-            const data = await response.json();
+            // Trigger the registerUser mutation with user data
+            const response = await loginUser({ username, password });
 
-            if (response.ok) {
-                const token = data.Token; // Extract the token
-                dispatch(login({ user: data.user, token })); // Dispatch login action with user and token
+            if (response.error) { // Handle RTK Query error (if any)
+                toast.error(response.error.data.message); // Display backend error message
+            } else if (response.data.status === 'error') { // Handle specific backend errors
+                toast.error(response.data.message); // Display backend error message
+            } else {
                 navigate("/"); // Navigate to home after login
                 toast.success('Login Succesfully'); // Toast success message
-            } else {
-                toast.error(data.error); // Display backend error message to the user
+                dispatch(credentials(response.data.user)); // Dispatch credentials action with user data
             }
 
         } catch (error) {
             console.error('Error sending data:', error);
-            toast('An error occurred. Please try again later.'); // Display error toast
+            toast.error('An error occurred. Please try again later.'); // Display error toast
         }
     };
 
@@ -82,7 +73,7 @@ const Login = () => {
                         />
                         <p className="text-red-600 text-sm">{errors.password?.message}</p>
                         <button type="submit" className="bg-red-500 text-white rounded-md py-2 px-4 font-medium hover:bg-opacity-75">
-                            Login
+                            {isLoading ? "Logging In...." : " Login"}
                         </button>
                     </form>
                     <p className="text-center mt-4 text-gray-500">

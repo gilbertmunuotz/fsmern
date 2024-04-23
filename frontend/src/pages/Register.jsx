@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { toast } from 'react-toastify';
-import { useDispatch } from 'react-redux'
 import { useForm } from 'react-hook-form';
-import { registers } from '../auth/AuthSlice'
-import { registerSchema } from '../userschema/RegisterSchema';
+import { useDispatch } from 'react-redux';
+import { credentials } from '../auth/AuthSlice';
 import { Link, useNavigate } from 'react-router-dom'
 import { yupResolver } from '@hookform/resolvers/yup';
-
+import { useRegisterMutation } from '../auth/APIslice';
+import { registerSchema } from '../userschema/RegisterSchema';
 
 const Register = () => {
     const {
@@ -15,49 +15,36 @@ const Register = () => {
         formState: { errors },
     } = useForm({ resolver: yupResolver(registerSchema) });
 
-
     const [username, setUsername] = useState("")
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
-    const dispatch = useDispatch()
-    const navigate = useNavigate()
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
+
+    const [registerUser, { isLoading, }] = useRegisterMutation(); // Get isLoading and error from useRegisterMutation
 
     const handleRegister = async () => {
-
-        const url = 'http://localhost:4000/api/register';
-
-        const userData = { username, email, password };
-
-        const requestOptions = {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(userData), // Stringify data into JSON
-        };
-
         try {
             // Perform client-side validation using yup
             await registerSchema.validate({ username, email, password });
 
-            const response = await fetch(url, requestOptions);
-            const data = await response.json();
+            // Trigger the registerUser mutation with user data
+            const response = await registerUser({ username, email, password });
 
-            if (response.ok) {
-                const token = data.Token; // Extract the token
-                dispatch(registers({ token })); // Dispatch registers action with token only
-                navigate("/login"); // Navigate to login after registration
-                toast.success('Registered Succesfully'); // Toast success message
-
-                // Delayed Toast for Login Success Message (using Promise.resolve)
-                Promise.resolve()
-                    .then(() => new Promise(resolve => setTimeout(resolve, 2000))) // Delay for 2 seconds
-                    .then(() => toast.success('Login To Continue Using Your Account'));
+            if (response.error) { // Handle RTK Query error (if any)
+                toast.error(response.error.data.message); // Display backend error message
+            } else if (response.data.status === 'error') { // Handle specific backend errors
+                toast.error(response.data.message); // Display backend error message
             } else {
-                toast.error(data.error); // Display backend error message to the user
+                navigate('/login');
+                toast.success('Registered Successfully!');
+                setTimeout(() => toast.success('Login To Continue Using Your Account'), 2000);
+                dispatch(credentials(response.data.user)); // Dispatch credentials action with user data
             }
-
+            // Handle other potential errors
         } catch (error) {
-            console.error('Error sending data:', error); //Console log the Error Occurred
-            toast.error('An error occurred. Please try again later.'); // Display error toast
+            console.error('Error sending data:', error);
+            toast.error('An error occurred. Please try again later.');
         }
     };
 
@@ -97,8 +84,8 @@ const Register = () => {
                             className="rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-red-500"
                         />
                         <p className="text-red-600 text-sm">{errors.password?.message}</p>
-                        <button type="submit" className="bg-red-500 text-white rounded-md py-2 px-4 font-medium hover:bg-opacity-75">
-                            Register
+                        <button type="submit" disabled={isLoading} className="bg-red-500 text-white rounded-md py-2 px-4 font-medium hover:bg-opacity-75">
+                            {isLoading ? "Registering...." : "Register"}
                         </button>
                     </form>
                     <p className="text-center mt-4 text-gray-500">
