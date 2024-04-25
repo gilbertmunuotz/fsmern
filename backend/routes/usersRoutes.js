@@ -17,12 +17,12 @@ router.post('/api/login', userController.loginController);
 router.get('/api/logout', userController.logoutController);
 
 /* Get User Profile Data */
-router.get('/api/myprofile', protect, userController.getUserProfileData);
+router.get('/api/myprofile/:id', protect, userController.getUserProfileData);
 
 /* Get User Profile Data */
-// router.get('/api/loggedin', userController.checkUserStatus);
+router.get('/api/loggedin', userController.checkUserStatus);
 
-/* Get Update User Profile */
+/* Update User Profile */
 router.put('/api/update', protect, userController.updateMyProfile);
 
 module.exports = router;
