@@ -1,15 +1,24 @@
-import { configureStore } from "@reduxjs/toolkit";
-import { persistStore, persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from "redux-persist";
+import { configureStore, combineReducers } from "@reduxjs/toolkit";
+import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
+import { FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from "redux-persist";
+import { apiSlice } from "../auth/APIslice";
 import authReducer from "../auth/AuthSlice";
 
-const persistConfig = {
+
+export const persistConfig = {
     key: "root",
     version: 1,
     storage,
+    purge: ['auth']
 };
 
-const persistedReducer = persistReducer(persistConfig, authReducer);
+const rootReducer = combineReducers({
+    auth: authReducer,
+    api: apiSlice.reducer, // Add the apiSlice reducer
+});
+
+const persistedReducer = persistReducer(persistConfig, rootReducer); // Use rootReducer
 
 export const store = configureStore({
     reducer: persistedReducer,
@@ -18,8 +27,7 @@ export const store = configureStore({
             serializableCheck: {
                 ignoreActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
             },
-        })
-})
-
+        }).concat(apiSlice.middleware),
+});
 
 export let persistor = persistStore(store);
