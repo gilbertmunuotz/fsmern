@@ -1,37 +1,39 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-    isLoggedIn: false, // Initially false login status
-    user: null,
-    token: localStorage.getItem('token') || null, // Check for token in local storage
+    userInfo: localStorage.getItem('userInfo')
+        ? JSON.parse(localStorage.getItem('userInfo'))
+        : null,
 };
 
 const authSlice = createSlice({
-    name: "auth",
+    name: 'auth',
     initialState,
     reducers: {
-        login: (state, action) => {
-            state.user = action.payload.user;
-            state.token = action.payload.token;
-            state.isLoggedIn = true; // Set logged in after successful login
-        },
-        registers: (state, action) => {
-            state.user = action.payload.user;
-            state.token = action.payload.token;
-            state.isLoggedIn = false; 
+        credentials: (state, action) => {
+            state.userInfo = action.payload; // Store user info in userInfo object
+            localStorage.setItem('userInfo', JSON.stringify(action.payload)); // Update localStorage
+            return state;
         },
         logout: (state) => {
-            state.user = null;
-            state.token = null;
-            state.isLoggedIn = false; // Update login status on logout
+            state.userInfo = null;
+            localStorage.removeItem('userInfo');
+            localStorage.removeItem('persist:root'); //Nilijaribu ku-clear persisted state when dispatch Logout is called but....
         },
     },
 });
 
-export const { login, registers, logout } = authSlice.actions;
 
-export const selectIsLoggedIn = (state) => state.auth.isLoggedIn;
-export const selectUser = (state) => state.auth.user;
-export const selectToken = (state) => state.auth.token;
+export const { credentials, logout } = authSlice.actions;
+
+export const clearPersistedState = () => (dispatch) => {
+    dispatch(logout());
+    localStorage.clear();
+};
+
+// Selector functions to access user information from userInfo object
+export const selectUser = (state) => state.auth.userInfo; // Access userInfo object directly
+export const selectToken = (state) => state.auth.userInfo?.token; // Access nested token property
+export const selectIsLoggedIn = (state) => state.auth.userInfo !== null; // Check if userInfo exists
 
 export default authSlice.reducer;

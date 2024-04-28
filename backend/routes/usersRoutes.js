@@ -23,6 +23,6 @@ router.get('/api/myprofile/:id', protect, userController.getUserProfileData);
 router.get('/api/loggedin', userController.checkUserStatus);
 
 /* Update User Profile */
-router.put('/api/update', protect, userController.updateMyProfile);
+router.put('/api/update/:id', protect, userController.updateMyProfile);
 
 module.exports = router;
