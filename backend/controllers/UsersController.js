@@ -136,7 +136,12 @@ async function logoutController(req, res, next) {
 async function getUserProfileData(req, res, next) {
     try {
 
-        const user = req.user;
+        // Extract user ID from request parameters
+        const { id } = req.params;
+
+        // Fetch user data based on the user ID
+        const user = await userModel.findById(id);
+
         if (user) {
 
             const { _id, username, email } = user;
@@ -147,12 +152,12 @@ async function getUserProfileData(req, res, next) {
                 email,
             });
         } else {
-            res.status(401).send({ status: 'error', message: "Unauthorized Access" });
+            res.status(404).json({ status: 'error', message: "User not found" });
         }
     } catch (error) {
         next(error)
         console.error("Error Getting User Data", error);
-        res.status(500).send({ status: 'error', message: "Internal server Error" });
+        res.status(500).json({ status: 'error', message: "Internal server Error" });
     }
 }
 
@@ -184,30 +189,47 @@ async function checkUserStatus(req, res) {
 //(DESC) Update user Profile
 async function updateMyProfile(req, res, next) {
 
-    //Find user by Id
-    const user = await userModel.findById(req.user._id);
+    // Retrieve ID from request body (assuming it's in the body)
+    const { id } = req.params;
 
-    // Hash the password before updating
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(req.body.password, salt);
+    // Find user by Id
+    const user = await userModel.findById(id);
 
-    // Create an object to hold the fields to be updated 
-    const updateFields = { username: req.body.username, email: req.body.email, password: hashedPassword, };
+    // Check if User Exists
+    if (!user) {
+        return res.status(404).json({ status: "error", message: "User Not Found" });
+    }
 
-    //Update user By Id
-    const fieldsToUpdate = await userModel.findByIdAndUpdate(user, updateFields);
+    // Extract password from request body
+    const password = req.body.password;
 
     try {
-        if (!fieldsToUpdate) {
-            return res.status(404).json({ message: "User Not Found" });
-        } else {
-            return res.status(200).send({ message: "Updated Succesfully" });
+        // Hash the password before updating (if password is provided)
+        if (password) {
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(password, salt);
+            req.body.password = hashedPassword; // Update password in request body
         }
+
+        // Update user By Id
+        const fieldsToUpdate = await userModel.findByIdAndUpdate(req.body, {
+            new: true, // Return the updated document
+        });
+
+        return res.json({ message: "Updated Succesfully", data: fieldsToUpdate });
     } catch (error) {
-        next(error)
-        console.error("Error Updating User", error);
-        res.status(500).send({ status: "error", message: "Internal server Error" });
+        // Handle specific errors (e.g., validation errors, database errors)
+        if (error.name === 'ValidationError') {
+            const validationErrors = Object.values(error.errors).map(err => err.message);
+            return res.status(400).json({ status: "error", message: validationErrors });
+        } else {
+            console.error("Error Updating User", error);
+            return res.status(500).json({ status: "error", message: "Internal server Error" });
+        }
     }
 }
 
-module.exports = { getSignal, registerController, loginController, logoutController, getUserProfileData, checkUserStatus, updateMyProfile }
+
+module.exports = {
+    getSignal, registerController, loginController, logoutController, getUserProfileData, checkUserStatus, updateMyProfile
+}
