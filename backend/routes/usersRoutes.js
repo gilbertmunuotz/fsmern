@@ -7,7 +7,7 @@ var userController = require('../controllers/UsersController');
 /* GET home page. */
 router.get('/', userController.getSignal);
 
-/* Register User */
+/* Login User */
 router.post('/api/register', userController.registerController);
 
 /* Register User */
