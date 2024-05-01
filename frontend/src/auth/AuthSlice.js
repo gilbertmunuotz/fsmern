@@ -18,7 +18,7 @@ const authSlice = createSlice({
         logout: (state) => {
             state.userInfo = null;
             localStorage.removeItem('userInfo');
-            localStorage.removeItem('persist:root'); //Nilijaribu ku-clear persisted state when dispatch Logout is called but....
+            localStorage.removeItem('persist:root'); //Nilijaribu ku-clear persisted state (optional) but....
         },
     },
 });
