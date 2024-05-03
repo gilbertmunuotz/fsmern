@@ -10,14 +10,14 @@ const Footer = () => {
                         <li className="workingTime">Weekdays only</li> 
                     </ul>
                 </div>
-                <div className="col flex-1 space-y-4 text-gray-700"> {/* Merged classes */}
+                <div className="col flex-1 space-y-4 text-gray-700"> 
                     <p className="text-lg">
                         Descriptive paragraph about your company or team.
                     </p>
                     <a href="#" className="text-blue-500 hover:text-blue-700 underline">Learn More</a>
                 </div>
             </div>
-            <div className="attribution mx-auto text-center mt-16 md:mt-0"> {/* Merged classes */}
+            <div className="attribution mx-auto text-center mt-16 md:mt-0"> 
                 <p>Designed and Developed by Me</p>
             </div>
         </section>
