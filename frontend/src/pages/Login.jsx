@@ -47,7 +47,7 @@ const Login = () => {
     };
 
     return (
-        <div className="fixed top-0 left-0 w-full h-full bg-red-500 z-50"> {/* Merged classes */}
+        <div className="fixed top-0 left-0 w-full h-full bg-red-500 z-50"> 
             <div className="container mx-auto max-w-sm flex items-center justify-center h-full"> 
                 <div className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col w-full px-8 py-10"> 
                     <h2 className="text-2xl font-bold text-red-500 text-center mb-8">Login</h2>
